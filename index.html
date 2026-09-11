@@ -8,7 +8,7 @@
         body {
             margin: 0;
             overflow: hidden;
-            background-color: #1a1a1a;
+            background-color: #111;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             user-select: none;
             touch-action: none;
@@ -25,35 +25,38 @@
             justify-content: center;
             align-items: center;
             z-index: 10;
-            transition: opacity 1s ease;
+            transition: opacity 0.8s ease;
             color: #fff;
             text-align: center;
         }
         #menu h1 {
-            font-size: 38px;
+            font-size: 40px;
             color: #4ade80;
             margin-bottom: 10px;
-            text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            text-shadow: 0 4px 15px rgba(0,0,0,0.6);
         }
         #menu p {
             color: #a3e635;
-            font-size: 15px;
+            font-size: 16px;
             margin-bottom: 30px;
         }
         .btn-play {
             background-color: #22c55e;
             color: white;
             border: none;
-            padding: 15px 45px;
-            font-size: 20px;
+            padding: 15px 50px;
+            font-size: 22px;
             font-weight: bold;
-            border-radius: 35px;
+            border-radius: 40px;
             cursor: pointer;
-            box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4);
+            box-shadow: 0 8px 25px rgba(34, 197, 94, 0.5);
         }
         .btn-play:active {
             transform: scale(0.95);
             background-color: #16a34a;
+        }
+        canvas {
+            display: block;
         }
         #gameUI {
             position: absolute;
@@ -63,14 +66,13 @@
             height: 100%;
             display: none;
             pointer-events: none;
-            z-index: 5;
         }
         #crosshair {
             position: absolute;
             top: 50%;
             left: 50%;
-            width: 14px;
-            height: 14px;
+            width: 16px;
+            height: 16px;
             border: 2px solid rgba(255, 255, 255, 0.9);
             border-radius: 50%;
             transform: translate(-50%, -50%);
@@ -131,14 +133,12 @@
         }
         .btn-fire:active { transform: scale(0.9); background: #dc2626; }
     </style>
-    <!-- ใช้ CDN ที่เสถียรที่สุดสำหรับ Three.js -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 </head>
 <body>
 
     <div id="menu">
         <h1>Bemo🤖ระบาด!</h1>
-        <p>กำจัดฝูง Bemo ท่ามกลางทุ่งหญ้า 3D!</p>
+        <p>กำจัดฝูงปีศาจ Bemo ทุ่งหญ้ากว้างใหญ่!</p>
         <button class="btn-play" onclick="startGame()">PLAY</button>
     </div>
 
@@ -162,12 +162,23 @@
         </div>
     </div>
 
+    <canvas id="gameCanvas"></canvas>
+
     <script>
-        let scene, camera, renderer;
-        let player = { x: 0, z: 0, rotY: 0 };
-        let monsters = [];
-        let score = 0;
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
         let gameActive = false;
+        let score = 0;
+        let playerX = 0, playerZ = 0, playerAngle = 0;
+        let monsters = [];
 
         function startGame() {
             const menu = document.getElementById('menu');
@@ -175,145 +186,63 @@
             setTimeout(() => {
                 menu.style.display = 'none';
                 document.getElementById('gameUI').style.display = 'block';
-                initGame3D();
                 gameActive = true;
+                initMonsters();
+                loop();
             }, 800);
         }
 
-        function initGame3D() {
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0xf6ad55); // สียามเย็น
-            scene.fog = new THREE.FogExp2(0xf6ad55, 0.012);
-
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 1.6, 0);
-
-            renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            document.body.appendChild(renderer.domElement);
-
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
-            scene.add(ambientLight);
-            const sunLight = new THREE.DirectionalLight(0xfffaed, 0.9);
-            sunLight.position.set(50, 100, 50);
-            scene.add(sunLight);
-
-            // พื้นหญ้าสุดลูกหูลูกตา
-            const floorGeo = new THREE.PlaneGeometry(2000, 2000);
-            const floorMat = new THREE.MeshLambertMaterial({ color: 0x38a169 });
-            const floor = new THREE.Mesh(floorGeo, floorMat);
-            floor.rotation.x = -Math.PI / 2;
-            scene.add(floor);
-
+        function initMonsters() {
+            monsters = [];
             for (let i = 0; i < 5; i++) {
                 spawnMonster();
             }
-
-            // ควบคุมการหมุนมุมมองจอ 3D
-            let isDragging = false;
-            let prevMouseX = 0;
-
-            window.addEventListener('pointerdown', (e) => {
-                if(!gameActive) return;
-                isDragging = true;
-                prevMouseX = e.clientX;
-            });
-
-            window.addEventListener('pointermove', (e) => {
-                if (!isDragging || !gameActive) return;
-                let deltaX = e.clientX - prevMouseX;
-                player.rotY -= deltaX * 0.004;
-                camera.rotation.y = player.rotY;
-                prevMouseX = e.clientX;
-            });
-
-            window.addEventListener('pointerup', () => { isDragging = false; });
-
-            animate();
-        }
-
-        function createBemoMesh() {
-            const group = new THREE.Group();
-
-            // ตัวเครื่อง Bemo (สีเขียวพาสเทล)
-            const bodyGeo = new THREE.BoxGeometry(1.2, 1.8, 0.6);
-            const bodyMat = new THREE.MeshLambertMaterial({ color: 0x86efac });
-            const body = new THREE.Mesh(bodyGeo, bodyMat);
-            body.position.y = 0.9;
-            group.add(body);
-
-            // หน้าจอ Bemo (สีฟ้า)
-            const screenGeo = new THREE.BoxGeometry(0.9, 0.9, 0.1);
-            const screenMat = new THREE.MeshLambertMaterial({ color: 0x0ea5e9 });
-            const screen = new THREE.Mesh(screenGeo, screenMat);
-            screen.position.set(0, 1.1, 0.31);
-            group.add(screen);
-
-            return group;
         }
 
         function spawnMonster() {
-            const monsterGroup = createBemoMesh();
-
             let angle = Math.random() * Math.PI * 2;
-            let distance = 25 + Math.random() * 20;
-            monsterGroup.position.x = player.x + Math.cos(angle) * distance;
-            monsterGroup.position.z = player.z + Math.sin(angle) * distance;
-
-            scene.add(monsterGroup);
-
+            let dist = 400 + Math.random() * 300;
             monsters.push({
-                mesh: monsterGroup,
-                health: 5, // ต้องยิง 5 นัดถึงตาย
-                speed: 0.035 + Math.random() * 0.015 // เดินช้าๆ แต่ไม่ช้ามาก
+                x: playerX + Math.cos(angle) * dist,
+                z: playerZ + Math.sin(angle) * dist,
+                health: 5, // 5 นัดตาย
+                maxHealth: 5,
+                speed: 1.2 + Math.random() * 0.8
             });
         }
 
-        function movePlayer(direction) {
+        function movePlayer(dir) {
             if (!gameActive) return;
-            const speed = 0.6;
-            if (direction === 'W') {
-                player.x -= Math.sin(player.rotY) * speed;
-                player.z -= Math.cos(player.rotY) * speed;
-            } else if (direction === 'S') {
-                player.x += Math.sin(player.rotY) * speed;
-                player.z += Math.cos(player.rotY) * speed;
-            } else if (direction === 'A') {
-                player.x -= Math.cos(player.rotY) * speed;
-                player.z += Math.sin(player.rotY) * speed;
-            } else if (direction === 'D') {
-                player.x += Math.cos(player.rotY) * speed;
-                player.z -= Math.sin(player.rotY) * speed;
+            const step = 20;
+            if (dir === 'W') {
+                playerX -= Math.sin(playerAngle) * step;
+                playerZ -= Math.cos(playerAngle) * step;
+            } else if (dir === 'S') {
+                playerX += Math.sin(playerAngle) * step;
+                playerZ += Math.cos(playerAngle) * step;
+            } else if (dir === 'A') {
+                playerAngle -= 0.15;
+            } else if (dir === 'D') {
+                playerAngle += 0.15;
             }
-            camera.position.x = player.x;
-            camera.position.z = player.z;
         }
 
         function shootGun() {
             if (!gameActive) return;
             
+            // เช็คยิงตัวที่อยู่ตรงกลางจอและใกล้ที่สุด
             for (let i = monsters.length - 1; i >= 0; i--) {
                 let m = monsters[i];
-                let dist = camera.position.distanceTo(m.mesh.position);
+                let dx = m.x - playerX;
+                let dz = m.z - playerZ;
+                let dist = Math.sqrt(dx*dx + dz*dz);
                 
-                if (dist < 20) {
-                    m.health -= 1; // ลดเลือดทีละ 1 นัด
-                    
-                    // เอฟเฟกต์หน้าจอพาร์ทตัวกระพริบแดงเมื่อโดนยิง
-                    m.mesh.children[0].material.color.setHex(0xef4444);
-                    setTimeout(() => {
-                        if(m.mesh && m.mesh.children[0]) {
-                            m.mesh.children[0].material.color.setHex(0x86efac);
-                        }
-                    }, 120);
-
-                    // ครบ 5 นัดตาย
+                if (dist < 500) {
+                    m.health -= 1;
                     if (m.health <= 0) {
-                        scene.remove(m.mesh);
                         monsters.splice(i, 1);
                         score += 10;
                         document.getElementById('score').innerText = score;
-                        
                         setTimeout(spawnMonster, 1000);
                     }
                     break;
@@ -321,24 +250,50 @@
             }
         }
 
-        function animate() {
+        function loop() {
             if (!gameActive) return;
-            requestAnimationFrame(animate);
 
+            // วาดฉากหลังท้องฟ้าและพื้นหญ้า (สียามเย็น)
+            ctx.fillStyle = '#f6ad55';
+            ctx.fillRect(0, 0, canvas.width, canvas.height / 2);
+            ctx.fillStyle = '#2e8b57';
+            ctx.fillRect(0, canvas.height / 2, canvas.width, canvas.height / 2);
+
+            // อัปเดตและวาด Bemo ศัตรู
             monsters.forEach(m => {
-                m.mesh.lookAt(camera.position.x, m.mesh.position.y, camera.position.z);
-                m.mesh.translateZ(m.speed);
+                // ขยับเข้าหาผู้เล่น
+                let dx = playerX - m.x;
+                let dz = playerZ - m.z;
+                let dist = Math.sqrt(dx*dx + dz*dz);
+                if (dist > 30) {
+                    m.x += (dx / dist) * m.speed;
+                    m.z += (dz / dist) * m.speed;
+                }
+
+                // คำนวณตำแหน่งแสดงผลบนจอ 2D ให้เหมือน 3D
+                let screenX = canvas.width / 2 + (m.x - playerX) * 2;
+                let screenY = canvas.height / 2 + 50 - (dist * 0.2);
+                let size = Math.max(20, 3000 / dist);
+
+                if (dist < 800) {
+                    // วาดตัว Bemo สีเขียวตามเรฟ
+                    ctx.fillStyle = '#86efac';
+                    ctx.fillRect(screenX - size/2, screenY - size, size, size * 1.5);
+                    // หน้าจอ Bemo สีฟ้า
+                    ctx.fillStyle = '#0ea5e9';
+                    ctx.fillRect(screenX - size/3, screenY - size * 0.8, size * 0.65, size * 0.6);
+
+                    // หลอดเลือด (แสดงเลือดตามจำนวนนัดที่เหลือ 5 นัด)
+                    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                    ctx.fillRect(screenX - size/2, screenY - size - 15, size, 8);
+                    ctx.fillStyle = '#ef4444';
+                    ctx.fillRect(screenX - size/2, screenY - size - 15, size * (m.health / m.maxHealth), 8);
+                }
             });
 
-            renderer.render(scene, camera);
+            requestAnimationFrame(loop);
         }
-
-        window.addEventListener('resize', () => {
-            if(!camera) return;
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
     </script>
 </body>
-</html>
+    </html>
+    
