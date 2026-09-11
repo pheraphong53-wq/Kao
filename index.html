@@ -6,9 +6,13 @@
 <title>Bemo ระบาด!</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{overflow:hidden;background:#000;font-family:sans-serif;touch-action:none}
-#game-container{width:100vw;height:100vh;position:relative}
-canvas{display:block;width:100%;height:100%}
+html,body{
+  overflow:hidden;background:#000;font-family:sans-serif;
+  touch-action:none;overscroll-behavior:none;
+  position:fixed;width:100%;height:100%;
+}
+#game-container{width:100vw;height:100vh;position:relative;touch-action:none}
+canvas{display:block;width:100%;height:100%;touch-action:none}
 
 #opening{
   position:absolute;inset:0;z-index:100;
@@ -38,40 +42,49 @@ canvas{display:block;width:100%;height:100%}
   box-shadow:0 0 6px #0f0
 }
 #ammo{
-  position:absolute;bottom:20px;right:20px;color:#0f0;font-size:1.1rem;font-weight:bold;
-  background:rgba(0,0,0,.55);padding:8px 14px;border-radius:8px;border:2px solid #0f0
+  position:absolute;bottom:25px;left:20px;color:#0f0;font-size:1.05rem;font-weight:bold;
+  background:rgba(0,0,0,.55);padding:7px 12px;border-radius:8px;border:2px solid #0f0
 }
 #kills{
   position:absolute;top:15px;left:15px;color:#fff;font-size:1.1rem;font-weight:bold;
   background:rgba(0,0,0,.55);padding:8px 14px;border-radius:8px
 }
 #hp-wrap{
-  position:absolute;bottom:20px;left:20px;width:170px;height:22px;
-  background:rgba(0,0,0,.6);border:2px solid #fff;border-radius:6px;overflow:hidden
+  position:absolute;bottom:25px;left:50%;transform:translateX(-50%);
+  width:160px;height:20px;background:rgba(0,0,0,.6);
+  border:2px solid #fff;border-radius:6px;overflow:hidden
 }
 #hp-bar{height:100%;width:100%;background:linear-gradient(90deg,#f00,#ff0,#0f0);transition:width .25s}
-#hp-text{position:absolute;width:100%;text-align:center;line-height:22px;color:#fff;font-size:.8rem;font-weight:bold}
+#hp-text{position:absolute;width:100%;text-align:center;line-height:20px;color:#fff;font-size:.75rem;font-weight:bold}
 #msg{
-  position:absolute;top:42%;left:50%;transform:translate(-50%,-50%);
+  position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);
   color:#ff0;font-size:1.7rem;font-weight:900;text-shadow:0 0 12px #f00,2px 2px 0 #000;
   opacity:0;transition:opacity .3s;pointer-events:none;text-align:center
 }
 #msg.show{opacity:1}
 #info{
   position:absolute;top:15px;left:50%;transform:translateX(-50%);
-  color:#fff;font-size:.75rem;background:rgba(0,0,0,.45);
-  padding:6px 12px;border-radius:8px;text-align:center;white-space:nowrap
+  color:#fff;font-size:.72rem;background:rgba(0,0,0,.45);
+  padding:5px 11px;border-radius:8px;text-align:center;white-space:nowrap
 }
 
-/* ปุ่มยิงมุมขวาบน */
-#btnShoot{
-  position:absolute;top:70px;right:18px;width:70px;height:70px;border-radius:50%;
-  background:rgba(255,40,40,.82);border:3px solid #fff;color:#fff;font-size:1.1rem;font-weight:bold;
+/* ปุ่มออก มุมขวาบน */
+#btnExit{
+  position:absolute;top:15px;right:15px;width:52px;height:52px;border-radius:50%;
+  background:rgba(0,0,0,.55);border:2px solid #fff;color:#fff;font-size:1.3rem;
   pointer-events:auto;display:none;align-items:center;justify-content:center;
-  box-shadow:0 0 14px rgba(255,0,0,.55);z-index:70;
+  z-index:80;-webkit-tap-highlight-color:transparent;
+}
+
+/* ปุ่มยิง ด้านล่างขวา */
+#btnShoot{
+  position:absolute;bottom:90px;right:22px;width:76px;height:76px;border-radius:50%;
+  background:rgba(255,40,40,.85);border:3px solid #fff;color:#fff;font-size:1.15rem;font-weight:bold;
+  pointer-events:auto;display:none;align-items:center;justify-content:center;
+  box-shadow:0 0 16px rgba(255,0,0,.55);z-index:70;
   -webkit-tap-highlight-color:transparent;
 }
-#btnShoot:active{transform:scale(0.92)}
+#btnShoot:active{transform:scale(0.9)}
 </style>
 </head>
 <body>
@@ -91,12 +104,13 @@ canvas{display:block;width:100%;height:100%}
     <div id="msg"></div>
   </div>
 
+  <div id="btnExit">✕</div>
   <div id="btnShoot">ยิง</div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-  // ===================== STATE =====================
+// ===================== STATE =====================
 let scene, camera, renderer;
 let clock = new THREE.Clock();
 let player = { hp: 100, kills: 0, speed: 11 };
@@ -112,16 +126,18 @@ let spawnTimer = 0;
 let spawnEvery = 2.3;
 
 let yaw = 0, pitch = 0;
-
-// touch control
-let lookTouch = null;   // นิ้วที่ลากหัน (ครึ่งบน)
-let moveTouch = null;   // นิ้วที่ลากเดิน (ครึ่งล่าง)
+let lookTouch = null;
+let moveTouch = null;
 let lookOrigin = {x:0, y:0};
 let moveOrigin = {x:0, y:0};
-let moveVec = {x:0, z:0}; // ทิศทางการเดิน
+let moveVec = {x:0, z:0};
 
 // ===================== INIT =====================
 function init() {
+  // กัน gesture กลับหน้า / pull to refresh
+  document.addEventListener('touchmove', function(e){ e.preventDefault(); }, {passive:false});
+  document.body.style.overscrollBehavior = 'none';
+
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -148,53 +164,46 @@ function init() {
 
   setupEvents();
   animate();
-
-  if (isMobile) {
-    document.getElementById('btnShoot').style.display = 'flex';
-  }
 }
 
 function createGround() {
   const geo = new THREE.PlaneGeometry(700, 700, 50, 50);
   const pos = geo.attributes.position;
-  for (let i = 0; i < pos.count; i++) {
-    pos.setZ(i, (Math.random() - 0.5) * 0.4);
-  }
+  for (let i = 0; i < pos.count; i++) pos.setZ(i, (Math.random()-0.5)*0.4);
   geo.computeVertexNormals();
   const mat = new THREE.MeshLambertMaterial({ color: 0x3cb371 });
   const ground = new THREE.Mesh(geo, mat);
-  ground.rotation.x = -Math.PI / 2;
+  ground.rotation.x = -Math.PI/2;
   scene.add(ground);
 
-  // หญ้าเพิ่ม
-  for (let i = 0; i < 80; i++) {
+  for (let i = 0; i < 70; i++) {
     const g = new THREE.Mesh(
-      new THREE.PlaneGeometry(1.8 + Math.random()*2, 0.5 + Math.random()*0.4),
+      new THREE.PlaneGeometry(1.8+Math.random()*2, 0.5+Math.random()*0.4),
       new THREE.MeshLambertMaterial({ color: 0x2e8b57, side: THREE.DoubleSide })
     );
-    g.position.set((Math.random()-0.5)*500, 0.25, (Math.random()-0.5)*500);
+    g.position.set((Math.random()-0.5)*480, 0.25, (Math.random()-0.5)*480);
     g.rotation.y = Math.random()*Math.PI;
     scene.add(g);
   }
 }
 
 function createClouds() {
-  const mat = new THREE.MeshBasicMaterial({ color: 0xffd9a0, transparent: true, opacity: 0.5 });
+  const mat = new THREE.MeshBasicMaterial({ color: 0xffd9a0, transparent:true, opacity:0.5 });
   for (let i = 0; i < 12; i++) {
-    const c = new THREE.Mesh(new THREE.SphereGeometry(9 + Math.random()*11, 6, 6), mat);
+    const c = new THREE.Mesh(new THREE.SphereGeometry(9+Math.random()*11, 6, 6), mat);
     c.position.set((Math.random()-0.5)*260, 32+Math.random()*30, (Math.random()-0.5)*260);
     scene.add(c);
   }
 }
 
-// ===================== ENEMY (ใกล้เคียงรูปมากขึ้น) =====================
+// ===================== ENEMY สมจริง =====================
 function createEnemy() {
   const g = new THREE.Group();
 
-  // ตัวหลัก (สีเขียวอ่อนเหมือน BMO)
+  // ตัว
   const bodyMat = new THREE.MeshLambertMaterial({ color: 0x8fd4b0 });
-  const body = new THREE.Mesh(new THREE.BoxGeometry(1.15, 1.65, 0.55), bodyMat);
-  body.position.y = 0.95;
+  const body = new THREE.Mesh(new THREE.BoxGeometry(1.15, 1.55, 0.55), bodyMat);
+  body.position.y = 1.05;
   g.add(body);
 
   // หน้าจอ
@@ -203,69 +212,72 @@ function createEnemy() {
     color: window.bmoTex ? 0xffffff : 0xb8e0c8 
   });
   const face = new THREE.Mesh(new THREE.PlaneGeometry(0.78, 0.58), faceMat);
-  face.position.set(0, 1.22, 0.28);
+  face.position.set(0, 1.32, 0.29);
   g.add(face);
 
-  // ปุ่มต่างๆ บนตัว (เลียนแบบรูป)
-  const btnMat = new THREE.MeshBasicMaterial({ color: 0xffcc00 });
-  const cross = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.18, 0.04), btnMat);
-  cross.position.set(-0.28, 0.72, 0.29);
-  g.add(cross);
+  // ปุ่มตกแต่ง
+  const cross = new THREE.Mesh(new THREE.BoxGeometry(0.17,0.17,0.04), new THREE.MeshBasicMaterial({color:0xffcc00}));
+  cross.position.set(-0.28, 0.82, 0.30); g.add(cross);
 
-  const tri = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.14, 0.04), new THREE.MeshBasicMaterial({color:0x44aaff}));
-  tri.position.set(0.05, 0.78, 0.29);
-  g.add(tri);
+  const tri = new THREE.Mesh(new THREE.BoxGeometry(0.13,0.13,0.04), new THREE.MeshBasicMaterial({color:0x44aaff}));
+  tri.position.set(0.05, 0.88, 0.30); g.add(tri);
 
-  const greenBtn = new THREE.Mesh(new THREE.CircleGeometry(0.07, 8), new THREE.MeshBasicMaterial({color:0x33cc55}));
-  greenBtn.position.set(0.28, 0.78, 0.29);
-  g.add(greenBtn);
+  const gBtn = new THREE.Mesh(new THREE.CircleGeometry(0.065,8), new THREE.MeshBasicMaterial({color:0x33cc55}));
+  gBtn.position.set(0.28, 0.88, 0.30); g.add(gBtn);
 
-  const redBtn = new THREE.Mesh(new THREE.CircleGeometry(0.09, 8), new THREE.MeshBasicMaterial({color:0xff3333}));
-  redBtn.position.set(0.18, 0.55, 0.29);
-  g.add(redBtn);
+  const rBtn = new THREE.Mesh(new THREE.CircleGeometry(0.085,8), new THREE.MeshBasicMaterial({color:0xff3333}));
+  rBtn.position.set(0.18, 0.62, 0.30); g.add(rBtn);
 
-  // ขา
+  // ขา (เก็บ reference เพื่อเอามาแกว่ง)
   const legMat = new THREE.MeshLambertMaterial({ color: 0x5bb890 });
-  [-0.28, 0.28].forEach(function(x) {
-    const leg = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.48, 0.24), legMat);
-    leg.position.set(x, 0.24, 0);
-    g.add(leg);
-  });
+  const legL = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.55, 0.24), legMat);
+  legL.position.set(-0.28, 0.28, 0);
+  g.add(legL);
+
+  const legR = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.55, 0.24), legMat);
+  legR.position.set(0.28, 0.28, 0);
+  g.add(legR);
 
   // แขน
-  [-0.68, 0.68].forEach(function(x) {
-    const arm = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.7, 0.2), legMat);
-    arm.position.set(x, 0.9, 0);
-    g.add(arm);
-  });
+  const armL = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.72, 0.2), legMat);
+  armL.position.set(-0.68, 1.0, 0);
+  g.add(armL);
 
-  // ตำแหน่งเกิด
+  const armR = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.72, 0.2), legMat);
+  armR.position.set(0.68, 1.0, 0);
+  g.add(armR);
+
+  // เก็บไว้ใช้ animate
+  g.userData.legL = legL;
+  g.userData.legR = legR;
+  g.userData.armL = armL;
+  g.userData.armR = armR;
+  g.userData.body = body;
+
+  // เกิด
   const ang = Math.random() * Math.PI * 2;
   const dist = 28 + Math.random() * 32;
   g.position.set(
-    camera.position.x + Math.cos(ang) * dist,
+    camera.position.x + Math.cos(ang)*dist,
     0,
-    camera.position.z + Math.sin(ang) * dist
+    camera.position.z + Math.sin(ang)*dist
   );
 
-  g.userData = {
-    hp: ENEMY_HP,
-    speed: 2.5 + Math.random() * 1.2,
-    flash: 0
-  };
+  g.userData.hp = ENEMY_HP;
+  g.userData.speed = 2.5 + Math.random()*1.2;
+  g.userData.flash = 0;
+  g.userData.walkPhase = Math.random()*Math.PI*2; // จังหวะเดินไม่เหมือนกัน
 
-  // แถบเลือด
-  const barBg = new THREE.Mesh(new THREE.PlaneGeometry(1.15, 0.11), new THREE.MeshBasicMaterial({color:0x222}));
-  barBg.position.y = 2.15;
-  g.add(barBg);
-  const bar = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 0.08), new THREE.MeshBasicMaterial({color:0x00ff00}));
-  bar.position.set(0, 2.15, 0.01);
-  g.add(bar);
+  // เลือด
+  const barBg = new THREE.Mesh(new THREE.PlaneGeometry(1.15,0.11), new THREE.MeshBasicMaterial({color:0x222}));
+  barBg.position.y = 2.25; g.add(barBg);
+  const bar = new THREE.Mesh(new THREE.PlaneGeometry(1.1,0.08), new THREE.MeshBasicMaterial({color:0x00ff00}));
+  bar.position.set(0, 2.25, 0.01); g.add(bar);
   g.userData.bar = bar;
 
   scene.add(g);
   enemies.push(g);
-  }
+}
   // ===================== SHOOT =====================
 function shoot() {
   if (!isPlaying) return;
@@ -281,7 +293,7 @@ function shoot() {
   setTimeout(function(){ scene.remove(flash); }, 45);
 
   const raycaster = new THREE.Raycaster();
-  raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+  raycaster.setFromCamera(new THREE.Vector2(0,0), camera);
   const hits = raycaster.intersectObjects(enemies, true);
 
   if (hits.length > 0) {
@@ -337,10 +349,9 @@ function update(dt) {
     if (spawnEvery > 1.15) spawnEvery -= 0.03;
   }
 
-  // เดินจาก touch หรือคีย์บอร์ด
+  // เดิน
   let mx = moveVec.x;
   let mz = moveVec.z;
-
   if (keys['KeyW'] || keys['ArrowUp']) mz -= 1;
   if (keys['KeyS'] || keys['ArrowDown']) mz += 1;
   if (keys['KeyA'] || keys['ArrowLeft']) mx -= 1;
@@ -349,12 +360,8 @@ function update(dt) {
   if (mx !== 0 || mz !== 0) {
     const len = Math.sqrt(mx*mx + mz*mz) || 1;
     mx /= len; mz /= len;
-
-    const forward = new THREE.Vector3(0, 0, -1);
-    forward.applyAxisAngle(new THREE.Vector3(0,1,0), yaw);
-    const right = new THREE.Vector3(1, 0, 0);
-    right.applyAxisAngle(new THREE.Vector3(0,1,0), yaw);
-
+    const forward = new THREE.Vector3(0,0,-1).applyAxisAngle(new THREE.Vector3(0,1,0), yaw);
+    const right = new THREE.Vector3(1,0,0).applyAxisAngle(new THREE.Vector3(0,1,0), yaw);
     camera.position.x += (forward.x * -mz + right.x * mx) * player.speed * dt;
     camera.position.z += (forward.z * -mz + right.z * mx) * player.speed * dt;
   }
@@ -364,7 +371,8 @@ function update(dt) {
   camera.rotation.y = yaw;
   camera.rotation.x = pitch;
 
-  // ศัตรู
+  // ศัตรู + อนิเมชันเดิน
+  const t = clock.getElapsedTime();
   for (let i = 0; i < enemies.length; i++) {
     const e = enemies[i];
     const dir = new THREE.Vector3().subVectors(camera.position, e.position);
@@ -373,12 +381,25 @@ function update(dt) {
     e.position.addScaledVector(dir, e.userData.speed * dt);
     e.lookAt(camera.position.x, e.position.y, camera.position.z);
 
+    // อนิเมชันขา + แขน แกว่งเหมือนคนเดิน
+    e.userData.walkPhase += dt * 7.5;
+    const swing = Math.sin(e.userData.walkPhase) * 0.55;
+    const swing2 = Math.sin(e.userData.walkPhase + Math.PI) * 0.55;
+
+    e.userData.legL.rotation.x = swing;
+    e.userData.legR.rotation.x = swing2;
+    e.userData.armL.rotation.x = swing2 * 0.7;
+    e.userData.armR.rotation.x = swing * 0.7;
+
+    // ตัวเด้งนิดหน่อย
+    e.userData.body.position.y = 1.05 + Math.abs(Math.sin(e.userData.walkPhase)) * 0.04;
+
     if (e.userData.flash > 0) {
       e.userData.flash -= dt;
-      e.children[0].material.emissive = new THREE.Color(0xff2222);
-      e.children[0].material.emissiveIntensity = 0.6;
+      e.userData.body.material.emissive = new THREE.Color(0xff2222);
+      e.userData.body.material.emissiveIntensity = 0.6;
     } else {
-      e.children[0].material.emissiveIntensity = 0;
+      e.userData.body.material.emissiveIntensity = 0;
     }
 
     if (e.position.distanceTo(camera.position) < 1.65) {
@@ -388,14 +409,14 @@ function update(dt) {
     }
   }
 
-  for (let i = particles.length - 1; i >= 0; i--) {
+  for (let i = particles.length-1; i >= 0; i--) {
     const p = particles[i];
     p.userData.life -= dt;
     p.userData.vel.y -= 8 * dt;
     p.position.addScaledVector(p.userData.vel, dt);
     if (p.userData.life <= 0) {
       scene.remove(p);
-      particles.splice(i, 1);
+      particles.splice(i,1);
     }
   }
 }
@@ -410,18 +431,23 @@ function gameOver() {
   isPlaying = false;
   showMsg('GAME OVER\nฆ่าได้ ' + player.kills + ' ตัว');
   setTimeout(function() {
-    player.hp = 100;
-    player.kills = 0;
-    document.getElementById('kill-count').textContent = '0';
-    updateHP();
-    enemies.forEach(function(e){ scene.remove(e); });
-    enemies = [];
-    moveVec = {x:0, z:0};
-    document.getElementById('opening').classList.remove('hide');
-    document.getElementById('opening').style.display = 'flex';
-    document.getElementById('hud').style.display = 'none';
-    document.getElementById('btnShoot').style.display = 'none';
+    resetToMenu();
   }, 2200);
+}
+
+function resetToMenu() {
+  player.hp = 100;
+  player.kills = 0;
+  document.getElementById('kill-count').textContent = '0';
+  updateHP();
+  enemies.forEach(function(e){ scene.remove(e); });
+  enemies = [];
+  moveVec = {x:0, z:0};
+  document.getElementById('opening').classList.remove('hide');
+  document.getElementById('opening').style.display = 'flex';
+  document.getElementById('hud').style.display = 'none';
+  document.getElementById('btnShoot').style.display = 'none';
+  document.getElementById('btnExit').style.display = 'none';
 }
 
 function animate() {
@@ -435,17 +461,15 @@ function animate() {
 function setupEvents() {
   document.getElementById('play-btn').addEventListener('click', startGame);
   document.getElementById('play-btn').addEventListener('touchend', function(e){
-    e.preventDefault();
-    startGame();
+    e.preventDefault(); startGame();
   }, {passive:false});
 
-  document.addEventListener('keydown', function(e){ keys[e.code] = true; });
-  document.addEventListener('keyup', function(e){ keys[e.code] = false; });
+  document.addEventListener('keydown', function(e){ keys[e.code]=true; });
+  document.addEventListener('keyup', function(e){ keys[e.code]=false; });
 
   document.addEventListener('mousedown', function(e){
-    if (isPlaying && e.button === 0) shoot();
+    if (isPlaying && e.button===0) shoot();
   });
-
   document.addEventListener('mousemove', function(e){
     if (!isPlaying || isMobile) return;
     yaw -= e.movementX * 0.0025;
@@ -454,24 +478,29 @@ function setupEvents() {
   });
 
   window.addEventListener('resize', function(){
-    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.aspect = window.innerWidth/window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
   });
 
   // ปุ่มยิง
-  const btn = document.getElementById('btnShoot');
-  btn.addEventListener('touchstart', function(e){
-    e.preventDefault();
-    e.stopPropagation();
-    shoot();
+  const btnShoot = document.getElementById('btnShoot');
+  btnShoot.addEventListener('touchstart', function(e){
+    e.preventDefault(); e.stopPropagation(); shoot();
   }, {passive:false});
-  btn.addEventListener('click', function(e){
-    e.preventDefault();
-    shoot();
+
+  // ปุ่มออก
+  const btnExit = document.getElementById('btnExit');
+  btnExit.addEventListener('touchstart', function(e){
+    e.preventDefault(); e.stopPropagation();
+    isPlaying = false;
+    resetToMenu();
+  }, {passive:false});
+  btnExit.addEventListener('click', function(){
+    isPlaying = false;
+    resetToMenu();
   });
 
-  // ===== ระบบสัมผัสใหม่ =====
   document.addEventListener('touchstart', onTouchStart, {passive:false});
   document.addEventListener('touchmove', onTouchMove, {passive:false});
   document.addEventListener('touchend', onTouchEnd, {passive:false});
@@ -482,26 +511,23 @@ function onTouchStart(e) {
   if (!isPlaying) return;
   e.preventDefault();
 
-  for (let i = 0; i < e.changedTouches.length; i++) {
+  for (let i=0; i<e.changedTouches.length; i++) {
     const t = e.changedTouches[i];
-    const y = t.clientY;
-    const half = window.innerHeight * 0.48; // ครึ่งบน-ล่าง
-
-    // ถ้าแตะปุ่มยิงไม่ต้องทำอะไรเพิ่ม
-    const btn = document.getElementById('btnShoot');
-    const rect = btn.getBoundingClientRect();
-    if (t.clientX >= rect.left && t.clientX <= rect.right && t.clientY >= rect.top && t.clientY <= rect.bottom) {
+    // ไม่สนใจถ้าแตะปุ่ม
+    const btnS = document.getElementById('btnShoot').getBoundingClientRect();
+    const btnE = document.getElementById('btnExit').getBoundingClientRect();
+    if ((t.clientX>=btnS.left && t.clientX<=btnS.right && t.clientY>=btnS.top && t.clientY<=btnS.bottom) ||
+        (t.clientX>=btnE.left && t.clientX<=btnE.right && t.clientY>=btnE.top && t.clientY<=btnE.bottom)) {
       continue;
     }
 
-    if (y < half && lookTouch === null) {
-      // ครึ่งบน = หัน
+    const half = window.innerHeight * 0.48;
+    if (t.clientY < half && lookTouch === null) {
       lookTouch = t.identifier;
-      lookOrigin = {x: t.clientX, y: t.clientY};
-    } else if (y >= half && moveTouch === null) {
-      // ครึ่งล่าง = เดิน
+      lookOrigin = {x:t.clientX, y:t.clientY};
+    } else if (t.clientY >= half && moveTouch === null) {
       moveTouch = t.identifier;
-      moveOrigin = {x: t.clientX, y: t.clientY};
+      moveOrigin = {x:t.clientX, y:t.clientY};
       moveVec = {x:0, z:0};
     }
   }
@@ -511,23 +537,20 @@ function onTouchMove(e) {
   if (!isPlaying) return;
   e.preventDefault();
 
-  for (let i = 0; i < e.changedTouches.length; i++) {
+  for (let i=0; i<e.changedTouches.length; i++) {
     const t = e.changedTouches[i];
-
     if (t.identifier === lookTouch) {
       const dx = (t.clientX - lookOrigin.x) * 0.0045;
       const dy = (t.clientY - lookOrigin.y) * 0.0045;
       yaw -= dx;
       pitch = Math.max(-1.15, Math.min(1.15, pitch - dy));
-      lookOrigin = {x: t.clientX, y: t.clientY};
+      lookOrigin = {x:t.clientX, y:t.clientY};
     }
-
     if (t.identifier === moveTouch) {
       let dx = (t.clientX - moveOrigin.x) / 60;
       let dy = (t.clientY - moveOrigin.y) / 60;
-      // จำกัดความยาว
       const len = Math.sqrt(dx*dx + dy*dy);
-      if (len > 1) { dx /= len; dy /= len; }
+      if (len > 1) { dx/=len; dy/=len; }
       moveVec.x = dx;
       moveVec.z = dy;
     }
@@ -535,11 +558,9 @@ function onTouchMove(e) {
 }
 
 function onTouchEnd(e) {
-  for (let i = 0; i < e.changedTouches.length; i++) {
+  for (let i=0; i<e.changedTouches.length; i++) {
     const t = e.changedTouches[i];
-    if (t.identifier === lookTouch) {
-      lookTouch = null;
-    }
+    if (t.identifier === lookTouch) lookTouch = null;
     if (t.identifier === moveTouch) {
       moveTouch = null;
       moveVec = {x:0, z:0};
@@ -553,9 +574,10 @@ function startGame() {
   setTimeout(function(){
     op.style.display = 'none';
     document.getElementById('hud').style.display = 'block';
-    if (isMobile) document.getElementById('btnShoot').style.display = 'flex';
+    document.getElementById('btnShoot').style.display = 'flex';
+    document.getElementById('btnExit').style.display = 'flex';
     isPlaying = true;
-    for (let i = 0; i < 4; i++) createEnemy();
+    for (let i=0; i<4; i++) createEnemy();
   }, 1100);
 }
 
