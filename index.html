@@ -8,9 +8,10 @@
         body {
             margin: 0;
             overflow: hidden;
-            background-color: #1a1a1a;
+            background-color: #111;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             user-select: none;
+            touch-action: none;
         }
         #menu {
             position: absolute;
@@ -28,28 +29,33 @@
             text-align: center;
         }
         #menu h1 {
-            font-size: 36px;
+            font-size: 40px;
             color: #4ade80;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
         #menu p {
             color: #a3e635;
-            font-size: 14px;
+            font-size: 16px;
             margin-bottom: 30px;
         }
         .btn-play {
             background-color: #22c55e;
             color: white;
             border: none;
-            padding: 15px 40px;
-            font-size: 20px;
+            padding: 15px 50px;
+            font-size: 22px;
             font-weight: bold;
-            border-radius: 30px;
+            border-radius: 35px;
             cursor: pointer;
+            box-shadow: 0 6px 20px rgba(34, 197, 94, 0.5);
         }
-        #gameCanvas {
+        .btn-play:active {
+            transform: scale(0.95);
+            background-color: #16a34a;
+        }
+        canvas {
             display: block;
-            background: linear-gradient(to bottom, #87ceeb, #38a169);
         }
         #gameUI {
             position: absolute;
@@ -65,35 +71,58 @@
             top: 20px;
             left: 20px;
             color: white;
-            font-size: 16px;
+            font-size: 18px;
             font-weight: bold;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-            pointer-events: auto;
         }
         .touch-controls {
             position: absolute;
-            bottom: 20px;
+            bottom: 30px;
             width: 100%;
             display: flex;
-            justify-content: space-between;
-            padding: 0 20px;
+            justify-content: space-around;
+            align-items: center;
             box-sizing: border-box;
             pointer-events: auto;
         }
-        .btn-fire {
-            width: 80px;
-            height: 80px;
-            background: #ef4444;
-            border: 2px solid #fecaca;
+        .move-buttons {
+            display: flex;
+            gap: 15px;
+        }
+        .ctrl-btn {
+            width: 70px;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.25);
+            border: 2px solid rgba(255, 255, 255, 0.5);
             color: white;
-            font-size: 16px;
+            font-size: 24px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+        .ctrl-btn:active {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        .btn-fire {
+            width: 90px;
+            height: 90px;
+            background: #ef4444;
+            border: 3px solid #fecaca;
+            color: white;
+            font-size: 18px;
             font-weight: bold;
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
-            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.5);
-            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.6);
+            pointer-events: auto;
+        }
+        .btn-fire:active {
+            transform: scale(0.92);
+            background: #dc2626;
         }
     </style>
 </head>
@@ -101,7 +130,7 @@
 
     <div id="menu">
         <h1>Bemo🤖ระบาด!</h1>
-        <p>ยิงฝูง Bemo ที่บุกเข้ามา!</p>
+        <p>กำจัดฝูง Bemo ที่บุกรุกเข้ามาให้หมด!</p>
         <button class="btn-play" onclick="startGame()">PLAY</button>
     </div>
 
@@ -110,9 +139,13 @@
             <div>🎯 คะแนน: <span id="score">0</span></div>
             <div>❤️ พลังชีวิต: <span id="hp">100</span></div>
         </div>
+        
         <div class="touch-controls">
-            <div></div>
-            <button class="btn-fire" onclick="shootGame()">💥 ยิง!</button>
+            <div class="move-buttons">
+                <div class="ctrl-btn" ontouchstart="movePlayer(-1)" onmousedown="movePlayer(-1)">◀️</div>
+                <div class="ctrl-btn" ontouchstart="movePlayer(1)" onmousedown="movePlayer(1)">▶️</div>
+            </div>
+            <button class="btn-fire" onclick="shootBullet()">💥 ยิง</button>
         </div>
     </div>
 
@@ -122,77 +155,140 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
-        function resizeCanvas() {
+        function resize() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
         }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
+        window.addEventListener('resize', resize);
+        resize();
 
-        let gameStarted = false;
+        let gameActive = false;
         let score = 0;
         let hp = 100;
-        let bemolist = [];
+
+        let player = {
+            x: canvas.width / 2,
+            y: canvas.height - 180,
+            size: 50,
+            speed: 15
+        };
+
+        let bullets = [];
+        let bemos = [];
 
         function startGame() {
             document.getElementById('menu').style.display = 'none';
             document.getElementById('gameUI').style.display = 'block';
-            gameStarted = true;
-            spawnBemo();
+            gameActive = true;
+            player.x = canvas.width / 2;
+            score = 0;
+            hp = 100;
+            bullets = [];
+            bemos = [];
+            document.getElementById('score').innerText = score;
+            document.getElementById('hp').innerText = hp;
+            
+            setInterval(spawnBemo, 1200);
             loop();
         }
 
-        function spawnBemo() {
-            if (!gameStarted) return;
-            bemolist.push({
-                x: Math.random() * (canvas.width - 100) + 50,
-                y: -50,
-                size: 60,
-                speed: 1.5 + Math.random() * 2
-            });
-            setTimeout(spawnBemo, 1500);
+        function movePlayer(dir) {
+            if (!gameActive) return;
+            player.x += dir * player.speed;
+            if (player.x < 40) player.x = 40;
+            if (player.x > canvas.width - 40) player.x = canvas.width - 40;
         }
 
-        function shootGame() {
-            if (!gameStarted || bemolist.length === 0) return;
-            // ยิงตัวที่อยู่ใกล้ล่างสุดก่อน
-            bemolist.sort((a, b) => b.y - a.y);
-            bemolist.shift(); // กำจัด Bemo ตัวแรกสุดออก
-            score += 10;
-            document.getElementById('score').innerText = score;
+        function shootBullet() {
+            if (!gameActive) return;
+            bullets.push({
+                x: player.x,
+                y: player.y - 25,
+                speed: 12,
+                radius: 6
+            });
+        }
+
+        function spawnBemo() {
+            if (!gameActive) return;
+            bemos.push({
+                x: Math.random() * (canvas.width - 80) + 40,
+                y: -50,
+                size: 45,
+                speed: 2 + Math.random() * 2
+            });
         }
 
         function loop() {
-            if (!gameStarted) return;
-            
+            if (!gameActive) return;
+
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // วาดพื้นหลัง/ฉาก
-            ctx.fillStyle = '#38a169';
-            ctx.fillRect(0, canvas.height - 100, canvas.width, 100);
+            // วาดพื้นหลังท้องฟ้าและพื้นหญ้า
+            ctx.fillStyle = '#87ceeb';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#22c55e';
+            ctx.fillRect(0, canvas.height - 120, canvas.width, 120);
 
-            // อัปเดตและวาด Bemo
-            for (let i = bemolist.length - 1; i >= 0; i--) {
-                let b = bemolist[i];
-                b.y += b.speed;
+            // อัปเดตและวาดกระสุน
+            ctx.fillStyle = '#facc15';
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                let b = bullets[i];
+                b.y -= b.speed;
+                ctx.beginPath();
+                ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+                ctx.fill();
 
-                // วาดตัว Bemo ง่ายๆ
+                if (b.y < 0) {
+                    bullets.splice(i, 1);
+                }
+            }
+
+            // อัปเดตและวาด Bemo ศัตรู
+            for (let i = bemos.length - 1; i >= 0; i--) {
+                let bm = bemos[i];
+                bm.y += bm.speed;
+
+                // วาดตัว Bemo
                 ctx.fillStyle = '#86efac';
-                ctx.fillRect(b.x - b.size/2, b.y, b.size, b.size * 1.2);
+                ctx.fillRect(bm.x - bm.size/2, bm.y, bm.size, bm.size * 1.1);
+                // หน้าจอ Bemo
                 ctx.fillStyle = '#0ea5e9';
-                ctx.fillRect(b.x - b.size/3, b.y + 10, b.size * 0.7, b.size * 0.5);
+                ctx.fillRect(bm.x - bm.size/3, bm.y + 8, bm.size * 0.65, bm.size * 0.45);
 
-                // ถ้าหลุดจอ ถือว่าโดนโจมตี
-                if (b.y > canvas.height) {
-                    bemolist.splice(i, 1);
+                // เช็คว่า Bemo หลุดรอดลงมาข้างล่างไหม
+                if (bm.y > canvas.height - 120) {
+                    bemos.splice(i, 1);
                     hp -= 10;
                     document.getElementById('hp').innerText = hp;
                     if (hp <= 0) {
+                        gameActive = false;
                         alert('Game Over! คะแนนของคุณ: ' + score);
                         location.reload();
                     }
+                    continue;
+                }
+
+                // เช็คกระสุนโดน Bemo หรือยัง
+                for (let j = bullets.length - 1; j >= 0; j--) {
+                    let b = bullets[j];
+                    let dist = Math.hypot(b.x - bm.x, b.y - bm.y);
+                    if (dist < bm.size / 2 + b.radius) {
+                        // โดนยิง!
+                        bemos.splice(i, 1);
+                        bullets.splice(j, 1);
+                        score += 10;
+                        document.getElementById('score').innerText = score;
+                        break;
+                    }
                 }
             }
+
+            // วาดตัวผู้เล่น (ปืนใหญ่/ฮีโร่ปกป้อง)
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(player.x - 25, player.y, 50, 40);
+            ctx.fillStyle = '#1d4ed8';
+            ctx.fillRect(player.x - 8, player.y - 20, 16, 25);
 
             requestAnimationFrame(loop);
         }
