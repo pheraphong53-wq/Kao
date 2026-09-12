@@ -7,65 +7,39 @@
 <title>Bemo ระบาด!</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{
-  width:100%;height:100%;overflow:hidden!important;background:#000;font-family:sans-serif;
-  touch-action:none!important;overscroll-behavior:none!important;position:fixed;top:0;left:0;
-  -webkit-user-select:none;user-select:none;
-}
+html,body{width:100%;height:100%;overflow:hidden!important;background:#000;font-family:sans-serif;touch-action:none!important;overscroll-behavior:none!important;position:fixed;top:0;left:0;-webkit-user-select:none;user-select:none}
 #game-container{width:100vw;height:100vh;position:relative;touch-action:none!important;overflow:hidden}
 canvas{display:block;width:100%!important;height:100%!important;touch-action:none!important}
 
-#opening{
-  position:absolute;inset:0;z-index:100;
-  background:linear-gradient(to bottom,#ff8c00,#ff4500,#228b22);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  transition:opacity 1s ease;
-}
+#opening{position:absolute;inset:0;z-index:100;background:linear-gradient(to bottom,#ff8c00,#ff4500,#228b22);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 1s ease}
 #opening.hide{opacity:0;pointer-events:none}
-#opening-bmo{width:180px;max-width:38vw;margin-bottom:6px;border-radius:10px}
-#title{color:#fff;font-size:2.2rem;font-weight:900;text-align:center;text-shadow:3px 3px 0 #000,0 0 12px #ff0;margin:6px 0 20px}
-#play-btn{
-  padding:12px 44px;font-size:1.35rem;font-weight:bold;color:#fff;
-  background:linear-gradient(135deg,#00c853,#009624);border:3px solid #fff;border-radius:50px;
-  box-shadow:0 5px 0 #006400;
-}
+#opening-bmo{width:170px;max-width:36vw;margin-bottom:5px;border-radius:10px}
+#title{color:#fff;font-size:2.1rem;font-weight:900;text-align:center;text-shadow:3px 3px 0 #000,0 0 12px #ff0;margin:5px 0 18px}
+#play-btn{padding:11px 42px;font-size:1.3rem;font-weight:bold;color:#fff;background:linear-gradient(135deg,#00c853,#009624);border:3px solid #fff;border-radius:50px;box-shadow:0 5px 0 #006400}
 #play-btn:active{transform:translateY(3px)}
 
 #hud{position:absolute;inset:0;pointer-events:none;z-index:50;display:none}
-#crosshair{position:absolute;top:50%;left:50%;width:16px;height:16px;transform:translate(-50%,-50%);border:2px solid #fff;border-radius:50%;box-shadow:0 0 5px #0f0}
-#ammo{position:absolute;bottom:12px;left:12px;color:#0f0;font-size:.9rem;font-weight:bold;background:rgba(0,0,0,.55);padding:4px 9px;border-radius:6px;border:2px solid #0f0}
-#kills{position:absolute;top:8px;left:8px;color:#fff;font-size:.9rem;font-weight:bold;background:rgba(0,0,0,.55);padding:5px 10px;border-radius:6px}
-#hp-wrap{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);width:130px;height:15px;background:rgba(0,0,0,.6);border:2px solid #fff;border-radius:5px;overflow:hidden}
+#crosshair{position:absolute;top:50%;left:50%;width:15px;height:15px;transform:translate(-50%,-50%);border:2px solid #fff;border-radius:50%;box-shadow:0 0 5px #0f0}
+#ammo{position:absolute;bottom:10px;left:10px;color:#0f0;font-size:.85rem;font-weight:bold;background:rgba(0,0,0,.55);padding:4px 8px;border-radius:6px;border:2px solid #0f0}
+#kills{position:absolute;top:6px;left:6px;color:#fff;font-size:.85rem;font-weight:bold;background:rgba(0,0,0,.55);padding:4px 9px;border-radius:6px}
+#hp-wrap{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);width:120px;height:14px;background:rgba(0,0,0,.6);border:2px solid #fff;border-radius:5px;overflow:hidden}
 #hp-bar{height:100%;width:100%;background:linear-gradient(90deg,#f00,#ff0,#0f0);transition:width .25s}
-#hp-text{position:absolute;width:100%;text-align:center;line-height:15px;color:#fff;font-size:.65rem;font-weight:bold}
-#msg{position:absolute;top:34%;left:50%;transform:translate(-50%,-50%);color:#ff0;font-size:1.4rem;font-weight:900;text-shadow:0 0 10px #f00;opacity:0;transition:opacity .3s;text-align:center}
+#hp-text{position:absolute;width:100%;text-align:center;line-height:14px;color:#fff;font-size:.6rem;font-weight:bold}
+#msg{position:absolute;top:32%;left:50%;transform:translate(-50%,-50%);color:#ff0;font-size:1.3rem;font-weight:900;text-shadow:0 0 10px #f00;opacity:0;transition:opacity .3s;text-align:center}
 #msg.show{opacity:1}
-#info{position:absolute;top:8px;left:50%;transform:translateX(-50%);color:#fff;font-size:.65rem;background:rgba(0,0,0,.45);padding:3px 8px;border-radius:6px;white-space:nowrap}
+#info{position:absolute;top:6px;left:50%;transform:translateX(-50%);color:#fff;font-size:.6rem;background:rgba(0,0,0,.45);padding:3px 7px;border-radius:6px;white-space:nowrap}
 
-#btnExit{position:absolute;top:8px;right:8px;width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,.65);border:2px solid #fff;color:#fff;font-size:1.1rem;pointer-events:auto;display:none;align-items:center;justify-content:center;z-index:80}
-#btnShoot{position:absolute;bottom:55px;right:16px;width:64px;height:64px;border-radius:50%;background:rgba(255,40,40,.9);border:3px solid #fff;color:#fff;font-size:1rem;font-weight:bold;pointer-events:auto;display:none;align-items:center;justify-content:center;box-shadow:0 0 12px rgba(255,0,0,.5);z-index:70}
+#btnExit{position:absolute;top:6px;right:6px;width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,.65);border:2px solid #fff;color:#fff;font-size:1rem;pointer-events:auto;display:none;align-items:center;justify-content:center;z-index:80}
+#btnShoot{position:absolute;bottom:50px;right:14px;width:60px;height:60px;border-radius:50%;background:rgba(255,40,40,.9);border:3px solid #fff;color:#fff;font-size:.95rem;font-weight:bold;pointer-events:auto;display:none;align-items:center;justify-content:center;box-shadow:0 0 12px rgba(255,0,0,.5);z-index:70}
 #btnShoot:active{transform:scale(.9)}
+#btnSwitch{position:absolute;top:50%;right:10px;transform:translateY(-50%);width:48px;height:48px;border-radius:10px;background:rgba(0,100,200,.85);border:2px solid #fff;color:#fff;font-size:.7rem;font-weight:bold;pointer-events:auto;display:none;align-items:center;justify-content:center;text-align:center;line-height:1.1;z-index:70}
 
-/* ปุ่มสลับอาวุธ */
-#btnSwitch{
-  position:absolute;top:50%;right:12px;transform:translateY(-50%);
-  width:52px;height:52px;border-radius:12px;
-  background:rgba(0,100,200,.85);border:2px solid #fff;color:#fff;font-size:.75rem;font-weight:bold;
-  pointer-events:auto;display:none;align-items:center;justify-content:center;text-align:center;line-height:1.1;z-index:70
-}
-
-/* จอยสติ๊ก */
-#joystick{position:absolute;bottom:20px;left:20px;width:120px;height:120px;pointer-events:auto;z-index:60;display:none;touch-action:none}
+#joystick{position:absolute;bottom:16px;left:16px;width:110px;height:110px;pointer-events:auto;z-index:60;display:none;touch-action:none}
 #joyBase{width:100%;height:100%;border-radius:50%;background:rgba(255,255,255,.18);border:3px solid rgba(255,255,255,.4);position:relative}
-#joyStick{width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.55);border:2px solid #fff;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}
+#joyStick{width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.55);border:2px solid #fff;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}
 
-/* ปุ่มสกิล (โหมดดาบ) */
-.skill-btn{
-  position:absolute;bottom:20px;width:48px;height:48px;border-radius:10px;
-  background:rgba(0,60,150,.85);border:2px solid #7df;color:#fff;font-size:.7rem;font-weight:bold;
-  pointer-events:auto;display:none;align-items:center;justify-content:center;text-align:center;line-height:1.05;z-index:70
-}
-#sk1{left:150px} #sk2{left:205px} #sk3{left:260px}
+.skill-btn{position:absolute;bottom:16px;width:44px;height:44px;border-radius:9px;background:rgba(0,60,150,.85);border:2px solid #7df;color:#fff;font-size:.65rem;font-weight:bold;pointer-events:auto;display:none;align-items:center;justify-content:center;text-align:center;line-height:1.05;z-index:70}
+#sk1{left:135px} #sk2{left:185px} #sk3{left:235px} #sk4{left:285px} #sk5{left:335px}
 .skill-btn.cd{opacity:.4;pointer-events:none}
 </style>
 </head>
@@ -76,7 +50,6 @@ canvas{display:block;width:100%!important;height:100%!important;touch-action:non
     <div id="title">BEMO<br>ระบาด!</div>
     <button id="play-btn">▶ PLAY</button>
   </div>
-
   <div id="hud">
     <div id="crosshair"></div>
     <div id="ammo">🔫 ∞</div>
@@ -85,18 +58,16 @@ canvas{display:block;width:100%!important;height:100%!important;touch-action:non
     <div id="info">จอย = เดิน | ลากขวา = หัน</div>
     <div id="msg"></div>
   </div>
-
   <div id="btnExit">✕</div>
   <div id="btnShoot">ยิง</div>
   <div id="btnSwitch">ปืน</div>
-
   <div id="joystick"><div id="joyBase"><div id="joyStick"></div></div></div>
-
   <div class="skill-btn" id="sk1">พุ่ง</div>
   <div class="skill-btn" id="sk2">หมุน</div>
   <div class="skill-btn" id="sk3">ต่อเนื่อง</div>
+  <div class="skill-btn" id="sk4">สายฟ้า</div>
+  <div class="skill-btn" id="sk5">แยก</div>
 </div>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
   // ===================== STATE =====================
@@ -105,6 +76,7 @@ let clock = new THREE.Clock();
 let player = { hp: 150, kills: 0, speed: 11 };
 let enemies = [];
 let particles = [];
+let clones = [];
 let keys = {};
 let isPlaying = false;
 let lastShot = 0;
@@ -118,22 +90,18 @@ let lookTouch = null, lookOrigin = {x:0,y:0};
 let moveVec = {x:0, z:0};
 let joyActive = false, joyTouchId = null, joyCenter = {x:0,y:0};
 
-// อาวุธ
-let weapon = 'gun'; // 'gun' | 'sword'
+let weapon = 'gun';
 let playerBody = null;
 let swordMesh = null;
-let isDashing = false;
-let dashTimer = 0;
-let spinTimer = 0;
-let rapidTimer = 0;
-let skillCD = [0,0,0]; // cooldown สกิล 1-3
+let isDashing = false, dashTimer = 0;
+let spinTimer = 0, rapidTimer = 0, cloneTimer = 0;
+let skillCD = [0,0,0,0,0];
 
 // ===================== INIT =====================
 function init() {
   function block(e){ e.preventDefault(); e.stopPropagation(); }
   document.addEventListener('touchmove', block, {passive:false});
   document.addEventListener('gesturestart', block, {passive:false});
-
   try { if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(function(){}); } catch(e){}
 
   renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -145,7 +113,7 @@ function init() {
   scene.background = new THREE.Color(0xff8c42);
   scene.fog = new THREE.FogExp2(0xff8c42, 0.013);
 
-  camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 400);
+  camera = new THREE.PerspectiveCamera(70, window.innerWidth/window.innerHeight, 0.1, 400);
   camera.position.set(0, 1.7, 0);
 
   scene.add(new THREE.HemisphereLight(0xffe0b0, 0x2d6a2d, 1.0));
@@ -158,7 +126,6 @@ function init() {
   createPlayerModel();
 
   window.bmoTex = new THREE.TextureLoader().load('bmo.jpg');
-
   setupEvents();
   animate();
 }
@@ -184,54 +151,76 @@ function createClouds() {
 
 function createPlayerModel() {
   playerBody = new THREE.Group();
-  // ตัวแบบง่าย
-  const body = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.9, 0.35), new THREE.MeshLambertMaterial({color:0x4488cc}));
-  body.position.y = 0.9;
-  playerBody.add(body);
-  // หัว
-  const head = new THREE.Mesh(new THREE.BoxGeometry(0.35,0.35,0.35), new THREE.MeshLambertMaterial({color:0xffcc99}));
-  head.position.y = 1.5;
-  playerBody.add(head);
-  // ดาบสีฟ้า
-  swordMesh = new THREE.Mesh(
-    new THREE.BoxGeometry(0.08, 0.9, 0.08),
-    new THREE.MeshBasicMaterial({color:0x44ddff})
-  );
-  swordMesh.position.set(0.35, 1.1, 0.2);
-  swordMesh.rotation.z = -0.3;
-  playerBody.add(swordMesh);
-  // แสงดาบ
-  const swordLight = new THREE.PointLight(0x44ddff, 1.2, 4);
-  swordLight.position.copy(swordMesh.position);
-  playerBody.add(swordLight);
 
+  // ตัว
+  const body = new THREE.Mesh(new THREE.BoxGeometry(0.55, 1.0, 0.35), new THREE.MeshLambertMaterial({color:0x3366aa}));
+  body.position.y = 1.0;
+  playerBody.add(body);
+
+  // หัว
+  const head = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.38, 0.38), new THREE.MeshLambertMaterial({color:0xffcc99}));
+  head.position.y = 1.65;
+  playerBody.add(head);
+
+  // ขา
+  const legMat = new THREE.MeshLambertMaterial({color:0x224488});
+  const legL = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.6, 0.2), legMat);
+  legL.position.set(-0.15, 0.3, 0); playerBody.add(legL);
+  const legR = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.6, 0.2), legMat);
+  legR.position.set(0.15, 0.3, 0); playerBody.add(legR);
+
+  // แขน
+  const armL = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.55, 0.18), legMat);
+  armL.position.set(-0.4, 1.15, 0); playerBody.add(armL);
+  const armR = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.55, 0.18), legMat);
+  armR.position.set(0.4, 1.15, 0); playerBody.add(armR);
+
+  // ดาบสีฟ้าสวยขึ้น
+  const swordGroup = new THREE.Group();
+  const blade = new THREE.Mesh(
+    new THREE.BoxGeometry(0.07, 1.15, 0.04),
+    new THREE.MeshBasicMaterial({color:0x44eeff})
+  );
+  blade.position.y = 0.6;
+  swordGroup.add(blade);
+
+  const guard = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.06, 0.08), new THREE.MeshBasicMaterial({color:0xaaddff}));
+  guard.position.y = 0.05;
+  swordGroup.add(guard);
+
+  const handle = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.28, 0.06), new THREE.MeshBasicMaterial({color:0x2266aa}));
+  handle.position.y = -0.12;
+  swordGroup.add(handle);
+
+  // แสงดาบ
+  const sLight = new THREE.PointLight(0x44eeff, 1.8, 5);
+  sLight.position.y = 0.7;
+  swordGroup.add(sLight);
+
+  swordGroup.position.set(0.42, 1.05, 0.25);
+  swordGroup.rotation.z = -0.4;
+  playerBody.add(swordGroup);
+  swordMesh = swordGroup;
+
+  playerBody.userData = { legL, legR, armL, armR };
   playerBody.visible = false;
   scene.add(playerBody);
   }
-  // ===================== ENEMY =====================
+  // ===================== ENEMY + CLONE =====================
 function createEnemy() {
   const g = new THREE.Group();
   const bodyMat = new THREE.MeshLambertMaterial({ color: 0x8fd4b0 });
   const body = new THREE.Mesh(new THREE.BoxGeometry(1.15, 1.55, 0.55), bodyMat);
-  body.position.y = 1.05;
-  g.add(body);
+  body.position.y = 1.05; g.add(body);
 
-  const face = new THREE.Mesh(
-    new THREE.PlaneGeometry(0.78, 0.58),
-    new THREE.MeshBasicMaterial({ map: window.bmoTex || null, color: 0xb8e0c8 })
-  );
-  face.position.set(0, 1.32, 0.29);
-  g.add(face);
+  const face = new THREE.Mesh(new THREE.PlaneGeometry(0.78, 0.58), new THREE.MeshBasicMaterial({ map: window.bmoTex || null, color: 0xb8e0c8 }));
+  face.position.set(0, 1.32, 0.29); g.add(face);
 
   const legMat = new THREE.MeshLambertMaterial({ color: 0x5bb890 });
-  const legL = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.55, 0.24), legMat);
-  legL.position.set(-0.28, 0.28, 0); g.add(legL);
-  const legR = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.55, 0.24), legMat);
-  legR.position.set(0.28, 0.28, 0); g.add(legR);
-  const armL = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.72, 0.2), legMat);
-  armL.position.set(-0.68, 1.0, 0); g.add(armL);
-  const armR = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.72, 0.2), legMat);
-  armR.position.set(0.68, 1.0, 0); g.add(armR);
+  const legL = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.55, 0.24), legMat); legL.position.set(-0.28, 0.28, 0); g.add(legL);
+  const legR = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.55, 0.24), legMat); legR.position.set(0.28, 0.28, 0); g.add(legR);
+  const armL = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.72, 0.2), legMat); armL.position.set(-0.68, 1.0, 0); g.add(armL);
+  const armR = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.72, 0.2), legMat); armR.position.set(0.68, 1.0, 0); g.add(armR);
 
   g.userData = { legL, legR, armL, armR, body, hp: ENEMY_HP, speed: 2.5+Math.random()*1.2, flash: 0, walkPhase: Math.random()*Math.PI*2 };
 
@@ -249,6 +238,17 @@ function createEnemy() {
   enemies.push(g);
 }
 
+function createClone() {
+  const c = playerBody.clone();
+  c.visible = true;
+  c.position.copy(playerBody.position);
+  c.position.x += (Math.random()-0.5)*3;
+  c.position.z += (Math.random()-0.5)*3;
+  c.userData = { life: 10, attackCD: 0 };
+  scene.add(c);
+  clones.push(c);
+}
+
 // ===================== COMBAT =====================
 function shoot() {
   if (!isPlaying || weapon !== 'gun') return;
@@ -257,8 +257,7 @@ function shoot() {
   lastShot = now;
 
   const flash = new THREE.PointLight(0xffaa00, 2.5, 7);
-  flash.position.copy(camera.position);
-  scene.add(flash);
+  flash.position.copy(camera.position); scene.add(flash);
   setTimeout(function(){ scene.remove(flash); }, 40);
 
   const raycaster = new THREE.Raycaster();
@@ -277,19 +276,14 @@ function slash() {
   if (now - lastShot < 0.28) return;
   lastShot = now;
 
-  // เอฟเฟกฟัน
-  createLightning(camera.position.clone().add(new THREE.Vector3(0,0,-1.5).applyQuaternion(camera.quaternion)), 0x44ddff);
+  createLightning(playerBody.position.clone().add(new THREE.Vector3(0,1.2,-1.2).applyAxisAngle(new THREE.Vector3(0,1,0), yaw)), 0x44eeff);
 
-  // ตรวจระยะใกล้
-  for (let i = 0; i < enemies.length; i++) {
+  for (let i=0;i<enemies.length;i++) {
     const e = enemies[i];
-    const dist = e.position.distanceTo(camera.position);
-    if (dist < 3.2) {
-      const toEnemy = new THREE.Vector3().subVectors(e.position, camera.position).normalize();
-      const forward = new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion);
-      if (toEnemy.dot(forward) > 0.4) {
-        hitEnemy(e, e.position.clone().add(new THREE.Vector3(0,1,0)), 1);
-      }
+    if (e.position.distanceTo(playerBody.position) < 3.5) {
+      const toE = new THREE.Vector3().subVectors(e.position, playerBody.position).normalize();
+      const fwd = new THREE.Vector3(0,0,-1).applyAxisAngle(new THREE.Vector3(0,1,0), yaw);
+      if (toE.dot(fwd) > 0.25) hitEnemy(e, e.position.clone().add(new THREE.Vector3(0,1,0)), 1);
     }
   }
 }
@@ -304,11 +298,9 @@ function hitEnemy(en, point, dmg) {
   for (let i=0;i<4;i++) {
     const p = new THREE.Mesh(new THREE.SphereGeometry(0.06,4,4), new THREE.MeshBasicMaterial({color:0xcc0000}));
     p.position.copy(point);
-    p.userData = { vel: new THREE.Vector3((Math.random()-0.5)*3, Math.random()*2+0.5, (Math.random()-0.5)*3), life: 0.45 };
-    scene.add(p);
-    particles.push(p);
+    p.userData = { vel: new THREE.Vector3((Math.random()-0.5)*3, Math.random()*2+0.5, (Math.random()-0.5)*3), life: 0.4 };
+    scene.add(p); particles.push(p);
   }
-
   if (en.userData.hp <= 0) {
     scene.remove(en);
     enemies = enemies.filter(function(e){ return e !== en; });
@@ -319,24 +311,17 @@ function hitEnemy(en, point, dmg) {
 }
 
 function createLightning(pos, color) {
-  const light = new THREE.PointLight(color || 0x44ddff, 2.5, 6);
-  light.position.copy(pos);
-  scene.add(light);
-  setTimeout(function(){ scene.remove(light); }, 180);
-
-  for (let i=0;i<6;i++) {
-    const p = new THREE.Mesh(new THREE.SphereGeometry(0.05,3,3), new THREE.MeshBasicMaterial({color: color||0x44ddff}));
+  const light = new THREE.PointLight(color||0x44eeff, 3, 7);
+  light.position.copy(pos); scene.add(light);
+  setTimeout(function(){ scene.remove(light); }, 200);
+  for (let i=0;i<7;i++) {
+    const p = new THREE.Mesh(new THREE.SphereGeometry(0.05,3,3), new THREE.MeshBasicMaterial({color:color||0x44eeff}));
     p.position.copy(pos);
-    p.userData = {
-      vel: new THREE.Vector3((Math.random()-0.5)*4, Math.random()*3, (Math.random()-0.5)*4),
-      life: 0.35
-    };
-    scene.add(p);
-    particles.push(p);
+    p.userData = { vel: new THREE.Vector3((Math.random()-0.5)*5, Math.random()*4, (Math.random()-0.5)*5), life: 0.4 };
+    scene.add(p); particles.push(p);
   }
 }
 
-// ===================== SKILLS =====================
 function useSkill(id) {
   if (!isPlaying || weapon !== 'sword') return;
   const now = clock.getElapsedTime();
@@ -344,15 +329,13 @@ function useSkill(id) {
 
   if (id === 0) { // พุ่ง
     skillCD[0] = now + 3.5;
-    isDashing = true;
-    dashTimer = 0.35;
+    isDashing = true; dashTimer = 0.4;
     document.getElementById('sk1').classList.add('cd');
     setTimeout(function(){ document.getElementById('sk1').classList.remove('cd'); }, 3500);
-    createLightning(camera.position, 0x66eeff);
   }
   if (id === 1) { // หมุน
     skillCD[1] = now + 5;
-    spinTimer = 0.9;
+    spinTimer = 1.0;
     document.getElementById('sk2').classList.add('cd');
     setTimeout(function(){ document.getElementById('sk2').classList.remove('cd'); }, 5000);
   }
@@ -362,13 +345,35 @@ function useSkill(id) {
     document.getElementById('sk3').classList.add('cd');
     setTimeout(function(){ document.getElementById('sk3').classList.remove('cd'); }, 8000);
   }
+  if (id === 3) { // สายฟ้าจากฟ้า
+    skillCD[3] = now + 7;
+    document.getElementById('sk4').classList.add('cd');
+    setTimeout(function(){ document.getElementById('sk4').classList.remove('cd'); }, 7000);
+    // ผ่าศัตรูใกล้ที่สุด 3 ตัว
+    let sorted = enemies.slice().sort(function(a,b){ return a.position.distanceTo(playerBody.position) - b.position.distanceTo(playerBody.position); });
+    for (let i=0;i<Math.min(3, sorted.length);i++) {
+      const e = sorted[i];
+      createLightning(e.position.clone().add(new THREE.Vector3(0,8,0)), 0x88ffff);
+      setTimeout(function(){ createLightning(e.position.clone().add(new THREE.Vector3(0,1,0)), 0x44eeff); hitEnemy(e, e.position, 3); }, 200);
+    }
+  }
+  if (id === 4) { // แยกร่าง
+    skillCD[4] = now + 18;
+    document.getElementById('sk5').classList.add('cd');
+    setTimeout(function(){ document.getElementById('sk5').classList.remove('cd'); }, 18000);
+    cloneTimer = 10;
+    for (let i=0;i<4;i++) createClone();
+    player.hp = Math.min(150, player.hp + 40);
+    updateHP();
+    showMsg('แยกร่าง + ฮีล!');
+  }
 }
 
 function showMsg(t) {
   const el = document.getElementById('msg');
   el.textContent = t;
   el.classList.add('show');
-  setTimeout(function(){ el.classList.remove('show'); }, 700);
+  setTimeout(function(){ el.classList.remove('show'); }, 800);
     }
   // ===================== UPDATE =====================
 function update(dt) {
@@ -376,8 +381,7 @@ function update(dt) {
 
   spawnTimer += dt;
   if (spawnTimer > spawnEvery && enemies.length < 14) {
-    createEnemy();
-    spawnTimer = 0;
+    createEnemy(); spawnTimer = 0;
     if (spawnEvery > 1.2) spawnEvery -= 0.025;
   }
 
@@ -390,16 +394,12 @@ function update(dt) {
 
   let speed = player.speed;
   if (isDashing) {
-    speed = 28;
-    dashTimer -= dt;
+    speed = 26; dashTimer -= dt;
     if (dashTimer <= 0) isDashing = false;
-    // ดาเมจตอนพุ่ง
     for (let i=0;i<enemies.length;i++) {
-      if (enemies[i].position.distanceTo(camera.position) < 2.2) {
-        hitEnemy(enemies[i], enemies[i].position.clone(), 2.5);
-      }
+      if (enemies[i].position.distanceTo(playerBody.position) < 2.4) hitEnemy(enemies[i], enemies[i].position, 2.5);
     }
-    createLightning(camera.position.clone(), 0x66eeff);
+    createLightning(playerBody.position.clone().add(new THREE.Vector3(0,1,0)), 0x66eeff);
   }
 
   if (mx !== 0 || mz !== 0) {
@@ -407,72 +407,104 @@ function update(dt) {
     mx /= len; mz /= len;
     const forward = new THREE.Vector3(0,0,-1).applyAxisAngle(new THREE.Vector3(0,1,0), yaw);
     const right = new THREE.Vector3(1,0,0).applyAxisAngle(new THREE.Vector3(0,1,0), yaw);
-    camera.position.x += (forward.x * -mz + right.x * mx) * speed * dt;
-    camera.position.z += (forward.z * -mz + right.z * mx) * speed * dt;
+    const moveX = (forward.x * -mz + right.x * mx) * speed * dt;
+    const moveZ = (forward.z * -mz + right.z * mx) * speed * dt;
+    if (weapon === 'sword') {
+      playerBody.position.x += moveX;
+      playerBody.position.z += moveZ;
+    } else {
+      camera.position.x += moveX;
+      camera.position.z += moveZ;
+    }
   }
 
-  // มุมกล้องตามอาวุธ
+  // ===== มุมกล้อง =====
   if (weapon === 'sword') {
-    camera.position.y = 2.0;
-    // ดึงกล้องออกนิดหน่อย
-    const back = new THREE.Vector3(0, 0.3, 2.8).applyAxisAngle(new THREE.Vector3(0,1,0), yaw);
-    // เราใช้ camera เป็นหลัก แล้วให้ playerBody ตาม
-  } else {
-    camera.position.y = 1.7;
-  }
-
-  camera.rotation.order = 'YXZ';
-  camera.rotation.y = yaw;
-  camera.rotation.x = pitch;
-
-  // อัปเดตตัวละครผู้เล่น
-  if (playerBody) {
-    playerBody.visible = (weapon === 'sword');
-    playerBody.position.copy(camera.position);
-    playerBody.position.y = 0;
+    // Third Person - กล้องอยู่หลังตัวละคร
+    playerBody.visible = true;
     playerBody.rotation.y = yaw;
+    const camOffset = new THREE.Vector3(0, 2.4, 4.2);
+    camOffset.applyAxisAngle(new THREE.Vector3(0,1,0), yaw);
+    camera.position.x = playerBody.position.x + camOffset.x;
+    camera.position.y = playerBody.position.y + camOffset.y;
+    camera.position.z = playerBody.position.z + camOffset.z;
+    camera.lookAt(playerBody.position.x, playerBody.position.y + 1.3, playerBody.position.z);
+  } else {
+    playerBody.visible = false;
+    camera.position.y = 1.7;
+    camera.rotation.order = 'YXZ';
+    camera.rotation.y = yaw;
+    camera.rotation.x = pitch;
   }
 
   // สกิลหมุน
   if (spinTimer > 0) {
     spinTimer -= dt;
-    createLightning(camera.position.clone().add(new THREE.Vector3((Math.random()-0.5)*3, 1, (Math.random()-0.5)*3)), 0x44ddff);
+    createLightning(playerBody.position.clone().add(new THREE.Vector3((Math.random()-0.5)*3,1,(Math.random()-0.5)*3)), 0x44eeff);
     for (let i=0;i<enemies.length;i++) {
-      if (enemies[i].position.distanceTo(camera.position) < 4.5) {
-        hitEnemy(enemies[i], enemies[i].position.clone(), 1.2);
-      }
+      if (enemies[i].position.distanceTo(playerBody.position) < 4.8) hitEnemy(enemies[i], enemies[i].position, 1.1);
     }
   }
-
-  // สกิลต่อเนื่อง
   if (rapidTimer > 0) {
     rapidTimer -= dt;
-    if (Math.random() < 0.15) slash();
+    if (Math.random() < 0.18) slash();
+  }
+
+  // โคลน
+  if (cloneTimer > 0) {
+    cloneTimer -= dt;
+    for (let i=clones.length-1;i>=0;i--) {
+      const c = clones[i];
+      c.userData.life -= dt;
+      if (c.userData.life <= 0) {
+        scene.remove(c); clones.splice(i,1); continue;
+      }
+      // หาศัตรูใกล้แล้วเดินไป + โจมตี
+      let nearest = null, minD = 999;
+      for (let j=0;j<enemies.length;j++) {
+        const d = c.position.distanceTo(enemies[j].position);
+        if (d < minD) { minD = d; nearest = enemies[j]; }
+      }
+      if (nearest) {
+        const dir = new THREE.Vector3().subVectors(nearest.position, c.position).setY(0).normalize();
+        c.position.addScaledVector(dir, 6 * dt);
+        c.lookAt(nearest.position.x, c.position.y, nearest.position.z);
+        c.userData.attackCD -= dt;
+        if (minD < 2.5 && c.userData.attackCD <= 0) {
+          hitEnemy(nearest, nearest.position, 1);
+          c.userData.attackCD = 0.6;
+          createLightning(c.position.clone().add(new THREE.Vector3(0,1,0)), 0x88ffff);
+        }
+      }
+    }
+  } else {
+    clones.forEach(function(c){ scene.remove(c); });
+    clones = [];
   }
 
   // ศัตรู
+  const targetPos = weapon === 'sword' ? playerBody.position : camera.position;
   for (let i=0;i<enemies.length;i++) {
     const e = enemies[i];
-    const dir = new THREE.Vector3().subVectors(camera.position, e.position);
-    dir.y = 0; dir.normalize();
+    const dir = new THREE.Vector3().subVectors(targetPos, e.position).setY(0).normalize();
     e.position.addScaledVector(dir, e.userData.speed * dt);
-    e.lookAt(camera.position.x, e.position.y, camera.position.z);
+    e.lookAt(targetPos.x, e.position.y, targetPos.z);
 
     e.userData.walkPhase += dt * 7.5;
     const swing = Math.sin(e.userData.walkPhase) * 0.55;
     e.userData.legL.rotation.x = swing;
     e.userData.legR.rotation.x = -swing;
-    e.userData.armL.rotation.x = -swing * 0.7;
-    e.userData.armR.rotation.x = swing * 0.7;
+    e.userData.armL.rotation.x = -swing*0.7;
+    e.userData.armR.rotation.x = swing*0.7;
 
     if (e.userData.flash > 0) {
       e.userData.flash -= dt;
-      e.userData.body.material.emissive = new THREE.Color(0xff2222);
+      e.userData.body.material.emissive.setHex(0xff2222);
       e.userData.body.material.emissiveIntensity = 0.55;
     } else e.userData.body.material.emissiveIntensity = 0;
 
-    if (e.position.distanceTo(camera.position) < 1.6) {
-      player.hp -= 8 * dt; // เลือดหนากว่าเดิม
+    if (e.position.distanceTo(targetPos) < 1.6) {
+      player.hp -= 7 * dt;
       updateHP();
       if (player.hp <= 0) gameOver();
     }
@@ -481,24 +513,21 @@ function update(dt) {
   for (let i=particles.length-1;i>=0;i--) {
     const p = particles[i];
     p.userData.life -= dt;
-    p.userData.vel.y -= 7 * dt;
+    p.userData.vel.y -= 7*dt;
     p.position.addScaledVector(p.userData.vel, dt);
-    if (p.userData.life <= 0) {
-      scene.remove(p);
-      particles.splice(i,1);
-    }
+    if (p.userData.life <= 0) { scene.remove(p); particles.splice(i,1); }
   }
 }
 
 function updateHP() {
   const pct = Math.max(0, player.hp);
-  document.getElementById('hp-bar').style.width = (pct/150*100) + '%';
-  document.getElementById('hp-text').textContent = 'HP ' + Math.ceil(pct);
+  document.getElementById('hp-bar').style.width = (pct/150*100)+'%';
+  document.getElementById('hp-text').textContent = 'HP '+Math.ceil(pct);
 }
 
 function gameOver() {
   isPlaying = false;
-  showMsg('GAME OVER\nฆ่าได้ ' + player.kills + ' ตัว');
+  showMsg('GAME OVER\nฆ่าได้ '+player.kills+' ตัว');
   setTimeout(resetToMenu, 2200);
 }
 
@@ -506,10 +535,9 @@ function resetToMenu() {
   player.hp = 150; player.kills = 0;
   document.getElementById('kill-count').textContent = '0';
   updateHP();
-  enemies.forEach(function(e){ scene.remove(e); });
-  enemies = [];
-  moveVec = {x:0,z:0};
-  weapon = 'gun';
+  enemies.forEach(function(e){ scene.remove(e); }); enemies = [];
+  clones.forEach(function(c){ scene.remove(c); }); clones = [];
+  moveVec = {x:0,z:0}; weapon = 'gun';
   updateWeaponUI();
   document.getElementById('opening').classList.remove('hide');
   document.getElementById('opening').style.display = 'flex';
@@ -518,7 +546,7 @@ function resetToMenu() {
   document.getElementById('btnExit').style.display = 'none';
   document.getElementById('btnSwitch').style.display = 'none';
   document.getElementById('joystick').style.display = 'none';
-  document.querySelectorAll('.skill-btn').forEach(function(b){ b.style.display = 'none'; });
+  document.querySelectorAll('.skill-btn').forEach(function(b){ b.style.display='none'; });
 }
 
 function updateWeaponUI() {
@@ -528,15 +556,13 @@ function updateWeaponUI() {
   if (weapon === 'gun') {
     btn.textContent = 'ปืน';
     shoot.textContent = 'ยิง';
-    shoot.style.display = 'flex';
-    skills.forEach(function(b){ b.style.display = 'none'; });
+    skills.forEach(function(b){ b.style.display='none'; });
     document.getElementById('crosshair').style.display = 'block';
     document.getElementById('ammo').style.display = 'block';
   } else {
     btn.textContent = 'ดาบ';
     shoot.textContent = 'ฟัน';
-    shoot.style.display = 'flex';
-    skills.forEach(function(b){ b.style.display = 'flex'; });
+    skills.forEach(function(b){ b.style.display='flex'; });
     document.getElementById('crosshair').style.display = 'none';
     document.getElementById('ammo').style.display = 'none';
   }
@@ -559,32 +585,37 @@ function setupEvents() {
 
   document.getElementById('btnShoot').addEventListener('touchstart', function(e){
     e.preventDefault(); e.stopPropagation();
-    if (weapon === 'gun') shoot(); else slash();
+    if (weapon==='gun') shoot(); else slash();
   }, {passive:false});
 
   document.getElementById('btnSwitch').addEventListener('touchstart', function(e){
     e.preventDefault(); e.stopPropagation();
-    weapon = (weapon === 'gun') ? 'sword' : 'gun';
+    weapon = (weapon==='gun') ? 'sword' : 'gun';
+    if (weapon==='sword') {
+      playerBody.position.copy(camera.position);
+      playerBody.position.y = 0;
+    }
     updateWeaponUI();
   }, {passive:false});
 
   document.getElementById('btnExit').addEventListener('touchstart', function(e){
     e.preventDefault(); e.stopPropagation();
-    isPlaying = false; resetToMenu();
+    isPlaying=false; resetToMenu();
   }, {passive:false});
 
   document.getElementById('sk1').addEventListener('touchstart', function(e){ e.preventDefault(); useSkill(0); }, {passive:false});
   document.getElementById('sk2').addEventListener('touchstart', function(e){ e.preventDefault(); useSkill(1); }, {passive:false});
   document.getElementById('sk3').addEventListener('touchstart', function(e){ e.preventDefault(); useSkill(2); }, {passive:false});
+  document.getElementById('sk4').addEventListener('touchstart', function(e){ e.preventDefault(); useSkill(3); }, {passive:false});
+  document.getElementById('sk5').addEventListener('touchstart', function(e){ e.preventDefault(); useSkill(4); }, {passive:false});
 
-  // จอยสติ๊ก
   const joy = document.getElementById('joystick');
   joy.addEventListener('touchstart', function(e){
     e.preventDefault();
     const t = e.changedTouches[0];
     joyActive = true; joyTouchId = t.identifier;
     const rect = joy.getBoundingClientRect();
-    joyCenter = {x: rect.left+rect.width/2, y: rect.top+rect.height/2};
+    joyCenter = {x:rect.left+rect.width/2, y:rect.top+rect.height/2};
   }, {passive:false});
 
   document.addEventListener('touchmove', function(e){
@@ -593,23 +624,19 @@ function setupEvents() {
     for (let i=0;i<e.changedTouches.length;i++) {
       const t = e.changedTouches[i];
       if (joyActive && t.identifier === joyTouchId) {
-        let dx = (t.clientX - joyCenter.x) / 55;
-        let dy = (t.clientY - joyCenter.y) / 55;
+        let dx = (t.clientX - joyCenter.x)/50;
+        let dy = (t.clientY - joyCenter.y)/50;
         const len = Math.sqrt(dx*dx+dy*dy);
-        if (len > 1) { dx/=len; dy/=len; }
+        if (len>1){dx/=len;dy/=len;}
         moveVec.x = dx; moveVec.z = dy;
-        document.getElementById('joyStick').style.transform = 'translate(calc(-50% + '+(dx*40)+'px), calc(-50% + '+(dy*40)+'px))';
+        document.getElementById('joyStick').style.transform = 'translate(calc(-50% + '+(dx*36)+'px), calc(-50% + '+(dy*36)+'px))';
       }
-      // หัน (นิ้วอื่นที่อยู่นอกจอย)
       if (t.identifier !== joyTouchId) {
-        if (lookTouch === null) {
-          lookTouch = t.identifier;
-          lookOrigin = {x:t.clientX, y:t.clientY};
-        }
+        if (lookTouch === null) { lookTouch = t.identifier; lookOrigin = {x:t.clientX,y:t.clientY}; }
         if (t.identifier === lookTouch) {
-          yaw -= (t.clientX - lookOrigin.x) * 0.004;
-          pitch = Math.max(-1.1, Math.min(1.1, pitch - (t.clientY - lookOrigin.y)*0.004));
-          lookOrigin = {x:t.clientX, y:t.clientY};
+          yaw -= (t.clientX - lookOrigin.x)*0.004;
+          pitch = Math.max(-0.9, Math.min(0.7, pitch - (t.clientY-lookOrigin.y)*0.003));
+          lookOrigin = {x:t.clientX,y:t.clientY};
         }
       }
     }
@@ -619,8 +646,7 @@ function setupEvents() {
     for (let i=0;i<e.changedTouches.length;i++) {
       const t = e.changedTouches[i];
       if (t.identifier === joyTouchId) {
-        joyActive = false; joyTouchId = null;
-        moveVec = {x:0,z:0};
+        joyActive=false; joyTouchId=null; moveVec={x:0,z:0};
         document.getElementById('joyStick').style.transform = 'translate(-50%,-50%)';
       }
       if (t.identifier === lookTouch) lookTouch = null;
@@ -645,20 +671,16 @@ function startGame() {
     document.getElementById('btnExit').style.display = 'flex';
     document.getElementById('btnSwitch').style.display = 'flex';
     document.getElementById('joystick').style.display = 'block';
-    isPlaying = true;
-    weapon = 'gun';
-    updateWeaponUI();
+    isPlaying = true; weapon = 'gun'; updateWeaponUI();
     for (let i=0;i<4;i++) createEnemy();
   }, 900);
 }
 
 window.onload = function() {
-  if (typeof THREE === 'undefined') {
-    alert('โหลด Three.js ไม่สำเร็จ');
-    return;
-  }
+  if (typeof THREE === 'undefined') { alert('โหลด Three.js ไม่สำเร็จ'); return; }
   init();
 };
 </script>
 </body>
 </html>
+  
